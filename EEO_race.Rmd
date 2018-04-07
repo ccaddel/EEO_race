@@ -1,0 +1,428 @@
+---
+title: "Income by Race/Ethnicity, Gender, Parent Income, Commuting Zone"
+output: github_document
+---
+
+```{r setup, echo=FALSE, include=FALSE, warning=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+setwd('/Users/christinacaddel/Desktop/DATA/Outreachy')
+table_1 <- read.csv('table_1.csv')
+table_2 <- read.csv('table_2.csv')
+table_4 <- read.csv('table_4.csv')
+table_5 <- read.csv('table_5.csv')
+```
+
+This report explores a dataset containing demographic information and other details of children born in the United States from 1978-1983. It contains a group of data tables, with varying numbers of rows and columns, with observations aggregated by parent income percentile rank, child race, gender and commuting zone.
+
+## Exploring Data
+
+```{r echo=FALSE, warning=FALSE}
+#table_1$par_pctile <- factor(table_1$par_pctile, ordered = TRUE)
+#changes: par_pctile as ordered factor
+```
+
+```{r echo=FALSE, warning=FALSE}
+library(plyr)
+table_2$gender <- revalue(table_2$gender, c("F"="Female", "M"="Male", "P"="All"))
+#changes: gender with factor labels "Female", "Male", "All"
+```
+
+```{r echo=FALSE, warning=FALSE}
+table_4$cz <- factor(table_4$cz)
+#change: cz as factor
+```
+
+```{r echo=FALSE, warning=FALSE}
+table_5$percentile <- factor(table_5$percentile, ordered = TRUE)
+#change: percentile as ordered factor
+```
+
+```{r echo=FALSE, warning=FALSE}
+library(ggplot2)
+library(gridExtra)
+library(reshape2)
+library(grid)
+library(RColorBrewer)
+#install.packages("ggthemes")
+library("ggthemes")
+```
+
+### Parent Incomes and Race, Gender, Education, Incarcertain, Child Income 
+
+#### Looking at the number of children whose parents fall into a certain income percentile, according to race/ethnicity.
+
+```{r echo=FALSE, warning=FALSE}
+#scatter plots of distribution of variables at certain parent income rank
+p1 <- ggplot(aes(x = par_pctile, y = count_aian_pooled), data = table_1) +
+  geom_point() +
+  ylab('Ct Native American') +
+  xlab(NULL)
+
+p2 <- ggplot(aes(x = par_pctile, y = count_asian_pooled), data = table_1) +
+  geom_point() +
+  ylab("Ct Asian") +
+  xlab(NULL)
+  
+p3 <- ggplot(aes(x = par_pctile, y = count_black_pooled), data = table_1) +
+  geom_point() +
+  ylab("Ct Black") +
+  xlab(NULL)
+
+p4 <- ggplot(aes(x = par_pctile, y = count_hisp_pooled), data = table_1) +
+  geom_point() +
+  ylab("Ct Hispanic") +
+  xlab(NULL)
+
+p5 <- ggplot(aes(x = par_pctile, y = count_white_pooled), data = table_1) +
+  geom_point() +
+  ylab("Ct White") +
+  xlab(NULL)
+
+label = textGrob("Parent Income Percentile")
+grid.arrange(p1, p2, p3, p4, p5, bottom = label)
+```
+
+For parents of Native American, Black and Hispanic children, there is a strong linear negative relationship where as the income percentile rank increases, the number of children with parents in that rank decrease. For parents of White children we have the opposite relationship, as income percentile rank increases, the number of children with parents in that rank increase as well. In parents of Asian children we see a bit of a dichotomy, where there are high numbers of children with parents in a low income percentile rank, low numbers in the middle income rankings, and high again in high income percentile rankings.
+
+#### Looking at the density of children whose parents fall into a certain income percentile, according to race/ethnicity.
+
+```{r echo=FALSE, warning=FALSE}
+p1 <- ggplot(aes(x = par_pctile, y = density_aian_pooled), data = table_1) +
+  geom_point() +
+  ylab('% Native American') +
+  xlab(NULL)
+
+p2 <- ggplot(aes(x = par_pctile, y = density_asian_pooled), data = table_1) +
+  geom_point() +
+  ylab('% Asian') +
+  xlab(NULL)
+  
+p3 <- ggplot(aes(x = par_pctile, y = density_black_pooled), data = table_1) +
+  geom_point() +
+  ylab('% Black') +
+  xlab(NULL)
+
+p4 <- ggplot(aes(x = par_pctile, y = density_hisp_pooled), data = table_1) +
+  geom_point() +
+  ylab('% Hispanic') +
+  xlab(NULL)
+
+p5 <- ggplot(aes(x = par_pctile, y = density_white_pooled), data = table_1) +
+  geom_point() +
+  ylab('% White') +
+  xlab(NULL)
+
+label = textGrob("Parent Income Percentile")
+grid.arrange(p1, p2, p3, p4, p5, bottom = label)
+```
+
+Similarly to the graph before this one looking at the counts, the density of children with Native American, Black and Hispanic parents is higher in the low income percentiles, decreasing as the rankings increase. There is a low percentage of white children with parents in low income rankings, and the density increases as income rankings increase. The same dichotomy we saw earlier in Asian children is the same.
+
+#### College Attendance by Race, Gender and Parents' Income
+
+```{r echo=FALSE, warning=FALSE}
+p1 <- ggplot(aes(x = par_pctile, y = kid_college_black_female), data = table_1) +
+  geom_point() +
+  ylab('% College Black Female') +
+  xlab(NULL)
+
+p2 <- ggplot(aes(x = par_pctile, y = kid_college_black_male), data = table_1) +
+  geom_point() +
+  ylab('% College Black Male') +
+  xlab(NULL)
+  
+p3 <- ggplot(aes(x = par_pctile, y = kid_college_white_female), data = table_1) +
+  geom_point() +
+  ylab('% College White Female') +
+  xlab(NULL)
+
+p4 <- ggplot(aes(x = par_pctile, y = kid_college_white_male), data = table_1) +
+  geom_point() +
+  ylab('% College White Male') +
+  xlab(NULL)
+
+label = textGrob("Parent Income Percentile")
+grid.arrange(p1, p2, p3, p4, bottom = label)
+```
+
+It's clear that regardless of race or gender, parents' income percentile ranking correlates strongly and positively with the childrens' college attendance.
+
+#### Incarceration rates of children by Race, Gender, and Parents' Income
+
+```{r echo=FALSE, warning=FALSE}
+p1 <- ggplot(aes(x = par_pctile, y = kid_jail_black_female), data = table_1) +
+  geom_point() +
+  ylab('% Jail Black Female') +
+  xlab(NULL)
+
+p2 <- ggplot(aes(x = par_pctile, y = kid_jail_black_male), data = table_1) +
+  geom_point() +
+  ylab('% Jail Black Male') +
+  xlab(NULL)
+  
+p3 <- ggplot(aes(x = par_pctile, y = kid_jail_white_female), data = table_1) +
+  geom_point() +
+  ylab('% Jail White Female') +
+  xlab(NULL)
+
+p4 <- ggplot(aes(x = par_pctile, y = kid_jail_white_male), data = table_1) +
+  geom_point() +
+  ylab('% Jail White Male') +
+  xlab(NULL)
+
+label = textGrob("Parent Income Percentile")
+grid.arrange(p1, p2, p3, p4, bottom = label)
+```
+
+Regardless of race or gender, parents' income percentile ranking correlates somewhat strongly, negatively, and slightly exponentially with childrens' incarceration rates as of April 1, 2010.
+
+#### High School Degree/GED by Race, Gender, and Parents' Income
+
+```{r echo=FALSE, warning=FALSE}
+p1 <- ggplot(aes(x = par_pctile, y = kid_no_hs_black_female), data = table_1) +
+  geom_point() +
+  ylab('% No Degree Black Female') +
+  xlab(NULL)
+
+p2 <- ggplot(aes(x = par_pctile, y = kid_no_hs_black_male), data = table_1) +
+  geom_point() +
+  ylab('% No Degree Black Male') +
+  xlab(NULL)
+  
+p3 <- ggplot(aes(x = par_pctile, y = kid_no_hs_white_female), data = table_1) +
+  geom_point() +
+  ylab('% No Degree White Female') +
+  xlab(NULL)
+
+p4 <- ggplot(aes(x = par_pctile, y = kid_no_hs_white_male), data = table_1) +
+  geom_point() +
+  ylab('% No Degree White Male') +
+  xlab(NULL)
+
+label = textGrob("Parent Income Percentile")
+grid.arrange(p1, p2, p3, p4, bottom=label)
+```
+
+Similar to incarceration rates, low parent income percentile rankings have high percentages of children with no high school diploma or GED at age 19 or older. The percentages of children with no diploma gradually decrease as parent income percentile rankings increase. This applies across the board in race and gender.
+
+#### Mean Wage Rank of Children by Race, Gender and Parents' Income
+
+```{r echo=FALSE, warning=FALSE}
+p1 <- ggplot(aes(x = par_pctile, y = kir_black_female), data = table_1) +
+  geom_point() +
+  ylab('$ Rank Black Female') +
+  xlab(NULL)
+
+p2 <- ggplot(aes(x = par_pctile, y = kir_black_male), data = table_1) +
+  geom_point() +
+  ylab('$ Rank Black Male') +
+  xlab(NULL)
+
+p3 <- ggplot(aes(x = par_pctile, y = kir_black_pooled), data = table_1) +
+  geom_point() +
+  ylab('$ Rank Black All') +
+  xlab(NULL)
+  
+p4 <- ggplot(aes(x = par_pctile, y = kir_white_female), data = table_1) +
+  geom_point() +
+  ylab('$ Rank White Female') +
+  xlab(NULL)
+
+p5 <- ggplot(aes(x = par_pctile, y = kir_white_male), data = table_1) +
+  geom_point() +
+  ylab('$ Rank White Male') +
+  xlab(NULL)
+
+p6 <- ggplot(aes(x = par_pctile, y = kir_white_pooled), data = table_1) +
+  geom_point() +
+  ylab('$ Rank White All') +
+  xlab(NULL)
+
+label = textGrob("Parent Income Percentile")
+grid.arrange(p1, p2, p3, p4, p5, p6, label)
+```
+
+It looks likes parents' income percentile rankings correlate pretty strongly and positively with mean wage rank of children across the board. It just looks like white male children rank slightly higher that black male children for parents with the same income percentile ranking. For example, white males with parents in the 100th percentile seem to on average fall into around the 75th percentile in wages. Black males with parents also in the 100th percentile seem to on average fall into around the 65th percentile in wages.
+
+#### Mean Income Rank for Males by Race, Parents' Income, and Single/Two Parents
+
+```{r echo=FALSE, warning=FALSE}
+p1 <- ggplot(aes(x = par_pctile, y = kir_1par_black_male), data = table_1) +
+  geom_point() +
+  ylab('1 Parent Black Male') +
+  xlab(NULL)
+
+p2 <- ggplot(aes(x = par_pctile, y = kir_1par_white_male), data = table_1) +
+  geom_point() +
+  ylab('1 Parent White Male') +
+  xlab(NULL)
+
+p3 <- ggplot(aes(x = par_pctile, y = kir_2par_black_male), data = table_1) +
+  geom_point() +
+  ylab('2 Parent Black Male') +
+  xlab(NULL)
+  
+p4 <- ggplot(aes(x = par_pctile, y = kir_2par_white_male), data = table_1) +
+  geom_point() +
+  ylab('2 Parent White Male') +
+  xlab(NULL)
+
+label = textGrob("Parent Income Percentile")
+grid.arrange(p1, p2, p3, p4, bottom=label)
+```
+
+Overall, white males fare slightly better than black males in their average income rankings relative to parents' income rankings. We do see that for both races, having 2 parents home correlates with slightly higher mean wages than having only 1 parent home. 
+
+### Race and Gender in Incomes
+
+#### Income Quintiles by Race and Gender
+
+Income quintiles are split evenly into 5; with the 1st quintile being the bottom 20% of the population, the 2nd quintile being the 20-40% of the population, and so on.
+
+```{r echo=FALSE, warning=FALSE}
+#concatenate columns kid_race and gender for better plotting
+table_2$race_gender <- paste(table_2$kid_race, table_2$gender)
+
+quintiles <- table_2[,c("race_gender","kir_q1","kir_q2","kir_q3","kir_q4","kir_q5")]
+quintiles$race_gender <- factor(quintiles$race_gender)
+quintiles <- melt(quintiles, id.vars = "race_gender")
+
+levels(quintiles$variable) <- c("1st_Quintile", "2nd_Quintile", "3rd_Quintile", "4th_Quintile", "5th_Quintile")
+```
+
+```{r fig.width=11, fig.height=6, echo=FALSE, warning=FALSE}
+ggplot(aes(x=race_gender, y = value, color=value, fill=value), data = quintiles) +
+  geom_bar(stat = "identity") +
+  theme(text = element_text(size=10), axis.text.x = element_text(angle = 70)) + 
+  facet_wrap(~variable) +
+  ylab("Percentage")
+```
+
+This is interesting. Native Americans or American Indian Alaskan Native (AIAN) and Black Males make up the highest proportions of the first quintile of incomes. When we get to the fifth quintile, aka the highest 20% of individual income, we see those of Asian background make up the highest proportions.
+
+#### Parent Income Quintiles by Race and Gender
+
+```{r echo=FALSE, warning=FALSE}
+par_quintiles <- table_2[,c("race_gender","par_q1","par_q2","par_q3","par_q4","par_q5")]
+par_quintiles$race_gender <- factor(par_quintiles$race_gender)
+par_quintiles <- melt(par_quintiles, id.vars = "race_gender")
+
+levels(par_quintiles$variable) <- c("1st_Quintile", "2nd_Quintile", "3rd_Quintile", "4th_Quintile", "5th_Quintile")
+```
+
+```{r echo=FALSE, fig.width=11, fig.height=6, warning=FALSE}
+ggplot(aes(x=race_gender, y = value, color=value, fill=value), data = par_quintiles) +
+  geom_bar(stat = "identity") +
+  theme(text = element_text(size=10), axis.text.x = element_text(angle = 70)) + 
+  facet_wrap(~variable) +
+  ylab("Percentage")
+```
+
+This too is interesting. Black parents make up the largest proportion of the bottom 20% of incomes. Once we get to the top 20% of incomes, white parents make up the highest proportions. When comparing to the previous faceted plot of individual income quintiles, we see that Black children are faring better than their parents, with black males only faring slightly better. We also see that Asian children are faring much better than their parents, and white females are faring worse than their parents.
+
+#### Child Income Quintiles Compared with Parent Quintiles by Race and Gender
+
+```{r echo=FALSE, warning=FALSE}
+quint1_kid <- table_2[,c("race_gender","kir_q1_cond_par_q1","kir_q1_cond_par_q2","kir_q1_cond_par_q3","kir_q1_cond_par_q4","kir_q1_cond_par_q5")]
+quint1_kid$race_gender <- factor(quint1_kid$race_gender)
+quint1_kid <- melt(quint1_kid, id.vars = "race_gender")
+
+levels(quint1_kid$variable) <- c("Parent_Quintile1", "Parent_Quintile2", "Parent_Quintile3", "Parent_Quintile4", "Parent_Quintile5")
+
+```
+
+```{r echo=FALSE, fig.width=11, fig.height=6, warning=FALSE}
+ggplot(aes(x=race_gender, y=value, colour = variable),data = quint1_kid) +
+  geom_line(group=1) +
+  geom_point() +
+  theme(text = element_text(size=10), axis.text.x = element_text(angle = 70)) + 
+  ylab("Percentage") +
+  scale_colour_manual(values=c("red","green","blue","orange","black")) +
+  ggtitle("Children - Income in 1st Quintile")
+```
+
+For children who wind up landing an income in the first quintile, we don't see much of a trend from the income quintile their parents fell in. 
+
+```{r echo=FALSE, warning=FALSE}
+quint2_kid <- table_2[,c("race_gender","kir_q2_cond_par_q1","kir_q2_cond_par_q2","kir_q2_cond_par_q3","kir_q2_cond_par_q4","kir_q2_cond_par_q5")]
+quint2_kid$race_gender <- factor(quint2_kid$race_gender)
+quint2_kid <- melt(quint2_kid, id.vars = "race_gender")
+
+levels(quint2_kid$variable) <- c("Parent_Quintile1", "Parent_Quintile2", "Parent_Quintile3", "Parent_Quintile4", "Parent_Quintile5")
+```
+
+```{r echo=FALSE, fig.width=11, fig.height=6, warning=FALSE}
+ggplot(aes(x=race_gender, y=value, colour = variable),data = quint2_kid) +
+  geom_line(group=1) +
+  geom_point() +
+  theme(text = element_text(size=10), axis.text.x = element_text(angle = 70)) + 
+  ylab("Percentage") +
+  scale_colour_manual(values=c("red","green","blue","orange","black")) +
+  ggtitle("Children - Income in 2nd Quintile")
+```
+
+Children who fall into the 2nd quintile of income similarly pretty much follow suit with the income quintile their parents were/are in.
+
+```{r echo=FALSE, warning=FALSE}
+quint3_kid <- table_2[,c("race_gender","kir_q3_cond_par_q1","kir_q3_cond_par_q2","kir_q3_cond_par_q3","kir_q3_cond_par_q4","kir_q3_cond_par_q5")]
+quint3_kid$race_gender <- factor(quint3_kid$race_gender)
+quint3_kid <- melt(quint3_kid, id.vars = "race_gender")
+
+levels(quint3_kid$variable) <- c("Parent_Quintile1", "Parent_Quintile2", "Parent_Quintile3", "Parent_Quintile4", "Parent_Quintile5")
+```
+
+```{r echo=FALSE, fig.width=11, fig.height=6, warning=FALSE}
+ggplot(aes(x=race_gender, y=value, colour = variable),data = quint3_kid) +
+  geom_line(group=1) +
+  geom_point() +
+  theme(text = element_text(size=10), axis.text.x = element_text(angle = 70)) + 
+  ylab("Percentage") +
+  scale_colour_manual(values=c("red","green","blue","orange","black")) +
+  ggtitle("Children - Income in 3rd Quintile")
+```
+This is where things get interesting. We're starting to see children less and less following suit with their parents' incomes. Let's see if this trend intensifies.
+ 
+```{r echo=FALSE, warning=FALSE}
+quint4_kid <- table_2[,c("race_gender","kir_q4_cond_par_q1","kir_q4_cond_par_q2","kir_q4_cond_par_q3","kir_q4_cond_par_q4","kir_q4_cond_par_q5")]
+quint4_kid$race_gender <- factor(quint4_kid$race_gender)
+quint4_kid <- melt(quint4_kid, id.vars = "race_gender")
+
+levels(quint4_kid$variable) <- c("Parent_Quintile1", "Parent_Quintile2", "Parent_Quintile3", "Parent_Quintile4", "Parent_Quintile5")
+```
+
+```{r echo=FALSE, fig.width=11, fig.height=6, warning=FALSE}
+ggplot(aes(x=race_gender, y=value, colour = variable),data = quint4_kid) +
+  geom_line(group=1) +
+  geom_point() +
+  theme(text = element_text(size=10), axis.text.x = element_text(angle = 70)) + 
+  ylab("Percentage") +
+  scale_colour_manual(values=c("red","green","blue","orange","black")) +
+  ggtitle("Children - Income in 4th Quintile")
+```
+
+```{r echo=FALSE, warning=FALSE}
+quint5_kid <- table_2[,c("race_gender","kir_q5_cond_par_q1","kir_q5_cond_par_q2","kir_q5_cond_par_q3","kir_q5_cond_par_q4","kir_q5_cond_par_q5")]
+quint5_kid$race_gender <- factor(quint5_kid$race_gender)
+quint5_kid <- melt(quint5_kid, id.vars = "race_gender")
+
+levels(quint5_kid$variable) <- c("Parent_Quintile1", "Parent_Quintile2", "Parent_Quintile3", "Parent_Quintile4", "Parent_Quintile5")
+```
+
+```{r echo=FALSE, fig.width=11, fig.height=6, warning=FALSE}
+ggplot(aes(x=race_gender, y=value, colour = variable),data = quint5_kid) +
+  geom_line(group=1) +
+  geom_point() +
+  theme(text = element_text(size=10), axis.text.x = element_text(angle = 70)) + 
+  ylab("Percentage") +
+  scale_colour_manual(values=c("red","green","blue","orange","black")) +
+  ggtitle("Children - Income in 5th Quintile")
+```
+
+### Reflections
+
+There are some interesting trends observed in this data story. We see that Black, Hispanic, and Native American parents have the lowest incomes. We also see that parental income appears to correlate quite strongly with high school graduation rates, college attendance rates, and incarceration rates (negative correlation). Having both parents home also appears to coincide with slightly higher child incomes. However, this could have more to do with the family income being higher as a result of a dual income household moreso than the support of two parents rather than one.
+
+When it comes to child incomes(once they grow up of course), there are some notable differences across racial/ethnic lines where we see those of Asian background taking the highest proportions of those in the top 20% of income (5th quintile). When comparing child incomes to the quintile their parents fell in, there are some differences. We see a bit of stagnancy in parent income quintile and child income quintile in native americans who don't appear to be faring much better than parents. 
+
+Very interesting notes here for further research.
+
