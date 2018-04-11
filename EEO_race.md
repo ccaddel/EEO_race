@@ -6,7 +6,7 @@ This report explores a dataset containing demographic information and other deta
 Exploring Data
 --------------
 
-### Parent Incomes and Race, Gender, Education, Incarcertain, Child Income
+### Parent Incomes and Race, Gender, Education, Incarceration, Child Income
 
 #### Looking at the number of children whose parents fall into a certain income percentile, according to race/ethnicity.
 
